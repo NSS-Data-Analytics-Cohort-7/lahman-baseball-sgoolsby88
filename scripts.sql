@@ -1,4 +1,7 @@
-Select * From pitching;
+Select * From batting
+Join people
+Using(playerid)
+Where people.namelast='Owings';
 
 
 --Q1. What range of years for baseball games played does the provided database cover?
@@ -73,10 +76,20 @@ From pitching
 Group By yearid
 Having yearid >=1920) as iq
 Group by decade;
---The averages seem to increase until the late 1960s/early 1970s, then decrease a little.
+--Opinion: The averages seem to increase until the late 1960s/early 1970s, then decrease a little.
 
 --Q6. Find the player who had the most success stealing bases in 2016, where success is measured as the percentage of stolen base attempts which are successful. (A stolen base attempt results either in a stolen base or being caught stealing.) Consider only players who attempted at least 20 stolen bases.
-Select 
+Select p.namefirst,
+    p.namelast,
+    round(b.sb*1.0/sum(b.sb+b.cs),2) as perc_stolen
+From people as p
+Join batting as b
+using(playerid)
+Group By p.namefirst, p.namelast,b.sb, b.yearid
+Having yearid = '2016'
+    And  sum(b.sb+b.cs) > 20
+Order By perc_stolen desc;
+--A. Chris Owings w/ 91% success rate
 
 --Q7. From 1970 – 2016, what is the largest number of wins for a team that did not win the world series? What is the smallest number of wins for a team that did win the world series? Doing this will probably result in an unusually small number of wins for a world series champion – determine why this is the case. Then redo your query, excluding the problem year. How often from 1970 – 2016 was it the case that a team with the most wins also won the world series? What percentage of the time?
 
