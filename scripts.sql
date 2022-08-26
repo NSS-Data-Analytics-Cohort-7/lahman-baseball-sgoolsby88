@@ -1,5 +1,5 @@
-Select distinct playerid From collegeplaying
-Where schoolid = 'vandy';
+Select * From pitching;
+
 
 --Q1. What range of years for baseball games played does the provided database cover?
 Select distinct yearid
@@ -44,9 +44,39 @@ Order by sum(s.salary) desc;
 
 --Q4. Using the fielding table, group players into three groups based on their position: label players with position OF as "Outfield", those with position "SS", "1B", "2B", and "3B" as "Infield", and those with position "P" or "C" as "Battery". Determine the number of putouts made by each of these three groups in 2016.
 
+Select distinct playerid,
+    Case When f.pos = 'OF' Then 'Outfield'
+        When f.pos In ('SS','1B','2B','3B') Then 'Infield'
+        When f.pos In ('P','C') Then 'Battery' End As Player_position,
+        Sum(f.po) as total_po
+From fielding as f
+Where yearid ='2016'
+Group By playerid,Player_position
+Order by total_po;
+
+
+
+
 
 --Q5. Find the average number of strikeouts per game by decade since 1920. Round the numbers you report to 2 decimal places. Do the same for home runs per game. Do you see any trends?
+Select decade, round(avg(avg_strikeouts),2)
+From
+(Select distinct yearid/10*10 as decade,
+    sum(so)/count(g) as avg_strikeouts
+From pitching
+Group By yearid
+Having yearid >=1920) as iq
+Group by decade;
 
+Select decade, round(avg(avg_homeruns),2)
+From
+(Select distinct yearid/10*10 as decade,
+    sum(hr)/count(g) as avg_homeruns
+From pitching
+Group By yearid
+Having yearid >=1920) as iq
+Group by decade;
+--The averages seem to increase until the late 1960s/early 1970s, then decrease a little.
 
 --Q6. Find the player who had the most success stealing bases in 2016, where success is measured as the percentage of stolen base attempts which are successful. (A stolen base attempt results either in a stolen base or being caught stealing.) Consider only players who attempted at least 20 stolen bases.
 
