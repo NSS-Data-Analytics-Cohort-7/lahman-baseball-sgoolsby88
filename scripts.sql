@@ -1,8 +1,8 @@
-Select * From batting
-Join people
-Using(playerid)
-Where people.namelast='Owings';
+Select sum(so), g From teams
+Where yearid = '2016';
 
+Select * From teams
+Where yearid = '2016';
 
 --Q1. What range of years for baseball games played does the provided database cover?
 Select distinct yearid
@@ -59,24 +59,27 @@ Group By Player_position;
 --Bettery = 41424, Infield = 58934, Outfield = 29560
 
 --Q5. Find the average number of strikeouts per game by decade since 1920. Round the numbers you report to 2 decimal places. Do the same for home runs per game. Do you see any trends?
-Select decade, round(avg(avg_strikeouts),2)
-From
-(Select distinct yearid/10*10 as decade,
-    sum(so)/count(g) as avg_strikeouts
-From pitching
-Group By yearid
-Having yearid >=1920) as iq
-Group by decade;
 
-Select decade, round(avg(avg_homeruns),2)
+Select decade, round(avg(avg_strikeouts),2) as avg_strikeouts
 From
 (Select distinct yearid/10*10 as decade,
-    sum(hr)/count(g) as avg_homeruns
-From pitching
-Group By yearid
+    sum(so)/g as avg_strikeouts
+From teams
+Group By yearid,g
 Having yearid >=1920) as iq
-Group by decade;
---Opinion: The averages seem to increase until the late 1960s/early 1970s, then decrease a little.
+Group by decade
+Order by decade asc;
+
+Select decade, round(avg(avg_homeruns),2) as avg_homeruns
+From
+(Select distinct yearid/10*10 as decade,
+    sum(hr)/g as avg_homeruns
+From teams
+Group By yearid, g
+Having yearid >=1920) as iq
+Group by decade
+Order by decade asc;
+--Opinion: The averages for both strikeouts and homeruns seem to have a steady incline from decade to decade. 
 
 --Q6. Find the player who had the most success stealing bases in 2016, where success is measured as the percentage of stolen base attempts which are successful. (A stolen base attempt results either in a stolen base or being caught stealing.) Consider only players who attempted at least 20 stolen bases.
 Select p.namefirst,
@@ -92,7 +95,7 @@ Order By perc_stolen desc;
 --A. Chris Owings w/ 91% success rate
 
 --Q7. From 1970 – 2016, what is the largest number of wins for a team that did not win the world series? What is the smallest number of wins for a team that did win the world series? Doing this will probably result in an unusually small number of wins for a world series champion – determine why this is the case. Then redo your query, excluding the problem year. How often from 1970 – 2016 was it the case that a team with the most wins also won the world series? What percentage of the time?
-
+Select 
 
 --Q8. Using the attendance figures from the homegames table, find the teams and parks which had the top 5 average attendance per game in 2016 (where average attendance is defined as total attendance divided by number of games). Only consider parks where there were at least 10 games played. Report the park name, team name, and average attendance. Repeat for the lowest 5 average attendance.
 
