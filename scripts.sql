@@ -101,7 +101,6 @@ From teams
 Where yearid between '1970' And '2016'
     And wswin ='N'
 order by w desc;
-
 --A. 116 wins
 
 Select *
@@ -119,10 +118,10 @@ Where yearid between '1970' And '2016'
 Order By w asc;
 --A. 83 wins after excluding 1981 due to low game count.
 
-Select teamid, sum(w)/max(w) as perc_win
+Select teamid, max(w) as perc_win
 From teams
 Where yearid between '1970' and '2016'
-    And wswin = 'Y'
+    And wswin = 'N'
 Group by teamid
 Order By perc_win;
 
@@ -154,7 +153,23 @@ Limit 5;
 --A. Run Query for "Bottom 5 Avg_Attendance"
 
 --Q9. Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.
-Select distinct p.namefirst, p.namelast, t.name as team
+Select * From awardsmanagers
+Where awardid='TSN Manager of the Year' 
+And lgid in ('AL', 'NL');
+
+Select distinct t.yearid, Concat(p.namefirst,' ', p.namelast), t.name as team, t.lgid
+From awardsmanagers as am
+Inner Join people as p
+On am.playerid = p.playerid
+Inner Join managershalf as mh
+On p.playerid = mh.playerid
+Inner Join teams as t
+On mh.teamid = t.teamid
+Where am.awardid = 'TSN Manager of the Year'
+    And am.lgid = 'NL'
+    or am.lgid = 'AL';
+    
+Select distinct p.namefirst, p.namelast, t.name AS team 
 From People as p
 Left Join awardsmanagers as am
 Using(playerid)
@@ -178,3 +193,4 @@ Where am.awardid = 'TSN Manager of the Year'
 --A. Run Query for list of TSN Manager of the Year winners.
 
 --Q10. Find all players who hit their career highest number of home runs in 2016. Consider only players who have played in the league for at least 10 years, and who hit at least one home run in 2016. Report the players' first and last names and the number of home runs they hit in 2016.
+Select 
