@@ -2,7 +2,8 @@ Select sum(so), g From teams
 Where yearid = '2016';
 
 Select * From teams
-Where yearid = '2016';
+Where yearid between '1970' And '2016'
+And wswin = 'Y';
 
 --Q1. What range of years for baseball games played does the provided database cover?
 Select distinct yearid
@@ -95,10 +96,63 @@ Order By perc_stolen desc;
 --A. Chris Owings w/ 91% success rate
 
 --Q7. From 1970 – 2016, what is the largest number of wins for a team that did not win the world series? What is the smallest number of wins for a team that did win the world series? Doing this will probably result in an unusually small number of wins for a world series champion – determine why this is the case. Then redo your query, excluding the problem year. How often from 1970 – 2016 was it the case that a team with the most wins also won the world series? What percentage of the time?
-Select 
+Select *
+From teams
+Where yearid between '1970' And '2016'
+    And wswin ='N'
+order by w desc;
+
+--A. 116 wins
+
+Select *
+From teams
+Where yearid between '1970' And '2016'
+    And wswin = 'Y'
+Order By w asc;
+--A. 63 wins
+
+Select *
+From teams
+Where yearid between '1970' And '2016'
+    And wswin = 'Y'
+    And yearid <> '1981'
+Order By w asc;
+--A. 83 wins after excluding 1981 due to low game count.
+
+Select teamid, sum(w)/max(w) as perc_win
+From teams
+Where yearid between '1970' and '2016'
+    And wswin = 'Y'
+Group by teamid
+Order By perc_win;
 
 --Q8. Using the attendance figures from the homegames table, find the teams and parks which had the top 5 average attendance per game in 2016 (where average attendance is defined as total attendance divided by number of games). Only consider parks where there were at least 10 games played. Report the park name, team name, and average attendance. Repeat for the lowest 5 average attendance.
 
+Select distinct h.team,
+    p.park_name,
+    sum(attendance)/sum(games) as avg_attendance
+From homegames as h
+Left Join parks as p
+Using(park)
+Where h.games >= 10
+    And year = '2016'
+Group By h.team, p.park_name
+Order By avg_attendance desc
+Limit 5;
+--A. Run Query for "Top 5 Avg_Attendance"
+
+Select distinct h.team,
+    p.park_name,
+    sum(attendance)/sum(games) as avg_attendance
+From homegames as h
+Left Join parks as p
+Using(park)
+Where h.games >= 10
+    And year = '2016'
+Group By h.team, p.park_name
+Order By avg_attendance asc
+Limit 5;
+--A. Run Query for "Bottom 5 Avg_Attendance"
 
 --Q9. Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.
 
