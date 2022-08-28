@@ -153,12 +153,23 @@ Limit 5;
 --A. Run Query for "Bottom 5 Avg_Attendance"
 
 --Q9. Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.
-Select * From awardsmanagers
-Where awardid='TSN Manager of the Year' 
-And lgid in ('AL', 'NL');
-
-Select distinct t.yearid, Concat(p.namefirst,' ', p.namelast), t.name as team, t.lgid
+Select distinct concat(p.namefirst,' ',p.namelast), t.name as team, am.lgid
 From awardsmanagers as am
+Left Join awardsmanagers as am2
+On am.playerid=am2.playerid AND am2.lgid='AL'
+Left Join people as p
+On am.playerid=p.playerid
+left join managershalf as mh
+On am.playerid=mh.playerid
+Left Join teams as t
+On mh.teamid=t.teamid
+Where am.lgid = 'TSN Manager of the Year'
+    And am.lgid ='NL';
+
+Select Concat(p.namefirst,' ', p.namelast), t.name as team, concat(am.lgid,'/',am2.lgid) as lgid1, am.awardid
+From awardsmanagers as am
+Join awardsmanagers as am2
+On am.playerid=am2.playerid And am.lgid='NL'
 Inner Join people as p
 On am.playerid = p.playerid
 Inner Join managershalf as mh
@@ -166,8 +177,27 @@ On p.playerid = mh.playerid
 Inner Join teams as t
 On mh.teamid = t.teamid
 Where am.awardid = 'TSN Manager of the Year'
-    And am.lgid = 'NL'
-    or am.lgid = 'AL';
+    And am2.lgid In ('NL','AL')
+Group By concat,t.yearid, team, lgid1, am.awardid
+Having Count(*)=2;
+
+--With award_winner as
+With award_winner as
+(Select distinct t.yearid, Concat(p.namefirst,' ', p.namelast), t.name as team, t.lgid, am.awardid
+From awardsmanagers as am
+Inner Join people as p
+On am.playerid = p.playerid
+Inner Join managershalf as mh
+On p.playerid = mh.playerid
+Inner Join teams as t
+On mh.teamid = t.teamid
+Where am.awardid = 'TSN Manager of the Year')
+Select distinct concat, team ,lgid, awardid
+From award_winner
+Where lgid IN ('NL' , 'AL')
+Group By distinct concat, team, lgid, awardid
+Having  Count(*)=3
+Order By concat;
     
 Select distinct p.namefirst, p.namelast, t.name AS team 
 From People as p
@@ -190,7 +220,14 @@ Join teams as t
 Using(teamid)
 Where am.awardid = 'TSN Manager of the Year'
     And am.lgid = 'AL';
---A. Run Query for list of TSN Manager of the Year winners.
+
 
 --Q10. Find all players who hit their career highest number of home runs in 2016. Consider only players who have played in the league for at least 10 years, and who hit at least one home run in 2016. Report the players' first and last names and the number of home runs they hit in 2016.
-Select 
+Select concat(p.namefirst,' ',p.namefirst), t.hr as homeruns
+From people as p
+Left Join managershalf as mh
+Using(playerid)
+Left Join teams as t
+Using(teamid)
+Where t.yeari
+
