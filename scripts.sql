@@ -118,12 +118,22 @@ Where yearid between '1970' And '2016'
 Order By w asc;
 --A. 83 wins after excluding 1981 due to low game count.
 
-Select teamid, max(w) as perc_win
+Select teamid, sum(w) as perc_win
 From teams
 Where yearid between '1970' and '2016'
     And wswin = 'N'
 Group by teamid
 Order By perc_win;
+
+Select distinct yearid, teamid, sum(g) as total_games, sum(w) as total_wins
+From teams
+Where yearid between '1970' AND '2016'
+    AND wswin = 'Y'
+Group By yearid,teamid
+    
+SElect *
+From teams
+Where yearid between '1970'and '2016'
 
 --Q8. Using the attendance figures from the homegames table, find the teams and parks which had the top 5 average attendance per game in 2016 (where average attendance is defined as total attendance divided by number of games). Only consider parks where there were at least 10 games played. Report the park name, team name, and average attendance. Repeat for the lowest 5 average attendance.
 Select distinct h.team,
@@ -223,11 +233,23 @@ Where am.awardid = 'TSN Manager of the Year'
 
 
 --Q10. Find all players who hit their career highest number of home runs in 2016. Consider only players who have played in the league for at least 10 years, and who hit at least one home run in 2016. Report the players' first and last names and the number of home runs they hit in 2016.
-Select concat(p.namefirst,' ',p.namefirst), t.hr as homeruns
-From people as p
-Left Join managershalf as mh
-Using(playerid)
-Left Join teams as t
-Using(teamid)
-Where t.yeari
+
+WITH record_homeruns AS
+   (SELECT playerid, yearid, MAX(hr) as max_homeruns
+    FROM batting
+    GROUP BY playerid, yearid),
+        decade AS
+            (SELECT playerid
+            FROM batting
+            GROUP BY playerid
+            HAVING count(playerid) >= 10)
+SELECT rh.yearid,(CONCAT(p.namefirst, ' ', p.namelast)) as name, rh.max_homeruns
+FROM decade as d
+LEFT JOIN record_homeruns as rh
+USING(playerid)
+LEFT JOIN people as p
+USING(playerid)
+WHERE yearid = 2016 AND max_homeruns <> 0
+ORDER BY rh.max_homeruns DESC;
+--A. Run Query...
 
