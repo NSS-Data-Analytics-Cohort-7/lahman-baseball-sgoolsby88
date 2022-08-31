@@ -163,20 +163,26 @@ Limit 5;
 --A. Run Query for "Bottom 5 Avg_Attendance"
 
 --Q9. Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.
-Select distinct concat(p.namefirst,' ',p.namelast), t.name as team, am.lgid
-From awardsmanagers as am
-Left Join awardsmanagers as am2
-On am.playerid=am2.playerid AND am2.lgid='AL'
-Left Join people as p
-On am.playerid=p.playerid
-left join managershalf as mh
-On am.playerid=mh.playerid
-Left Join teams as t
-On mh.teamid=t.teamid
-Where am.lgid = 'TSN Manager of the Year'
-    And am.lgid ='NL';
+    
+SELECT DISTINCT am1.playerid, CONCAT(p.namefirst,' ',p.namelast) as manager, am2.awardid, am2.yearid AS NL_year, t1.name as team_name, am2.lgid, am3.yearid AS AL_year, t2.name as team_name, am3.lgid
+FROM awardsmanagers AS am1
+JOIN awardsmanagers AS am2
+ON am1.playerid = am2.playerid AND am2.lgid = 'NL'
+JOIN awardsmanagers AS am3
+ON am2.playerid = am3.playerid AND am3.lgid = 'AL'
+LEFT JOIN people as p
+ON am1.playerid = p.playerid
+left Join managershalf as mh
+On p.playerid=mh.playerid
+Left Join teams as t1 
+On mh.teamid=t1.teamid
+Left Join teams as t2
+On t1.teamid=t2.teamid
+WHERE am2.awardid = 'TSN Manager of the Year' 
+    AND am3.awardid = 'TSN Manager of the Year'
+--Can get everything except team names.....
 
-Select Concat(p.namefirst,' ', p.namelast), t.name as team, concat(am.lgid,'/',am2.lgid) as lgid1, am.awardid
+/*Select Concat(p.namefirst,' ', p.namelast), t.name as team, concat(am.lgid,'/',am2.lgid) as lgid1, am.awardid
 From awardsmanagers as am
 Join awardsmanagers as am2
 On am.playerid=am2.playerid And am.lgid='NL'
@@ -208,6 +214,19 @@ Where lgid IN ('NL' , 'AL')
 Group By distinct concat, team, lgid, awardid
 Having  Count(*)=3
 Order By concat;
+
+SELECT am.playerid, CONCAT(p.namefirst,' ', p.namelast) as full_name, am2.awardid, am.lgid, am.yearid, am2.lgid, am2.yearid, t.name
+FROM awardsmanagers am
+JOIN awardsmanagers am2
+USING (playerid)
+JOIN people p
+USING (playerid)
+--JOIN managers m
+--USING(yearid)
+WHERE am.awardid = 'TSN Manager of the Year' 
+AND am.lgid IN ('AL','NL')
+GROUP BY am.playerid, p.namegiven, am.awardid, am.yearid, m.teamid
+ORDER BY am.playerid
     
 Select distinct p.namefirst, p.namelast, t.name AS team 
 From People as p
@@ -229,7 +248,7 @@ Using(playerid)
 Join teams as t
 Using(teamid)
 Where am.awardid = 'TSN Manager of the Year'
-    And am.lgid = 'AL';
+    And am.lgid = 'AL';*/
 
 
 --Q10. Find all players who hit their career highest number of home runs in 2016. Consider only players who have played in the league for at least 10 years, and who hit at least one home run in 2016. Report the players' first and last names and the number of home runs they hit in 2016.
