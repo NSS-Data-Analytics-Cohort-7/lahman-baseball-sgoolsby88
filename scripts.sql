@@ -164,7 +164,7 @@ Limit 5;
 
 --Q9. Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.
     
-SELECT DISTINCT am1.playerid, CONCAT(p.namefirst,' ',p.namelast) as manager, am2.awardid, am2.yearid AS NL_year, t1.name as team_name, am2.lgid, am3.yearid AS AL_year, t2.name as team_name, am3.lgid
+SELECT DISTINCT am1.playerid, CONCAT(p.namefirst,' ',p.namelast) as manager, am2.awardid, am2.yearid AS NL_year, mh1.teamid as team, am2.lgid, am3.yearid AS AL_year, mh2.teamid as team, am3.lgid
 FROM awardsmanagers AS am1
 JOIN awardsmanagers AS am2
 ON am1.playerid = am2.playerid AND am2.lgid = 'NL'
@@ -172,12 +172,10 @@ JOIN awardsmanagers AS am3
 ON am2.playerid = am3.playerid AND am3.lgid = 'AL'
 LEFT JOIN people as p
 ON am1.playerid = p.playerid
-left Join managershalf as mh
-On p.playerid=mh.playerid
-Left Join teams as t1 
-On mh.teamid=t1.teamid
-Left Join teams as t2
-On t1.teamid=t2.teamid
+left Join managershalf as mh1
+On p.playerid = mh1.playerid
+Left Join managershalf as mh2
+On mh1.teamid = mh2.teamid
 WHERE am2.awardid = 'TSN Manager of the Year' 
     AND am3.awardid = 'TSN Manager of the Year'
 --Can get everything except team names.....
