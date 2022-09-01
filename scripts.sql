@@ -118,22 +118,34 @@ Where yearid between '1970' And '2016'
 Order By w asc;
 --A. 83 wins after excluding 1981 due to low game count.
 
-Select teamid, sum(w) as perc_win
+/*Select teamid, sum(w) as perc_win
 From teams
 Where yearid between '1970' and '2016'
     And wswin = 'N'
 Group by teamid
-Order By perc_win;
+Order By perc_win;*/
 
-Select distinct yearid, teamid, sum(g) as total_games, sum(w) as total_wins
+with ws_win as 
+(Select distinct yearid, teamid, sum(w::float)/sum(g::float) as perc_w
 From teams
 Where yearid between '1970' AND '2016'
     AND wswin = 'Y'
-Group By yearid,teamid
-    
-SElect *
+Group By yearid,teamid),
+ws_lose as  
+(Select distinct yearid, teamid, sum(w::float)/sum(g::float) as perc_l
 From teams
-Where yearid between '1970'and '2016'
+Where yearid between '1970' AND '2016'
+    And wswin = 'N'
+Group By yearid, teamid)
+Select sum(ww.perc_w)/sum(ww.perc_w + wl.perc_l)
+From ws_win as ww
+Join ws_lose as wl
+Using(teamid);
+-- Maybe answer???
+
+/*SElect *
+From teams
+Where yearid between '1970'and '2016'*/
 
 --Q8. Using the attendance figures from the homegames table, find the teams and parks which had the top 5 average attendance per game in 2016 (where average attendance is defined as total attendance divided by number of games). Only consider parks where there were at least 10 games played. Report the park name, team name, and average attendance. Repeat for the lowest 5 average attendance.
 Select distinct h.team,
@@ -164,6 +176,7 @@ Limit 5;
 
 --Q9. Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.
     
+
 SELECT DISTINCT am1.playerid, CONCAT(p.namefirst,' ',p.namelast) as manager, am2.awardid, am2.yearid AS NL_year, mh1.teamid as team, am2.lgid, am3.yearid AS AL_year, mh2.teamid as team, am3.lgid
 FROM awardsmanagers AS am1
 JOIN awardsmanagers AS am2
@@ -176,8 +189,10 @@ left Join managershalf as mh1
 On p.playerid = mh1.playerid
 Left Join managershalf as mh2
 On mh1.teamid = mh2.teamid
-WHERE am2.awardid = 'TSN Manager of the Year' 
-    AND am3.awardid = 'TSN Manager of the Year'
+WHERE am2.awardid = 'TSN Manager of the Year'
+    And am3.awardid = 'TSN Manager of the Year'
+
+    
 --Can get everything except team names.....
 
 /*Select Concat(p.namefirst,' ', p.namelast), t.name as team, concat(am.lgid,'/',am2.lgid) as lgid1, am.awardid
