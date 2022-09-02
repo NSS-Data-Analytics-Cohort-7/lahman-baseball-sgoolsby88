@@ -176,8 +176,8 @@ Limit 5;
 
 --Q9. Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.
     
-
-SELECT DISTINCT am1.playerid, CONCAT(p.namefirst,' ',p.namelast) as manager, am2.awardid, am2.yearid AS NL_year, mh1.teamid as team, am2.lgid, am3.yearid AS AL_year, mh2.teamid as team, am3.lgid
+With CTE as
+(SELECT DISTINCT am1.playerid, CONCAT(p.namefirst,' ',p.namelast) as manager, am2.awardid, am2.yearid AS NL_year, mh1.teamid as team, am2.lgid, am3.yearid AS AL_year, mh2.teamid as team, am3.lgid
 FROM awardsmanagers AS am1
 JOIN awardsmanagers AS am2
 ON am1.playerid = am2.playerid AND am2.lgid = 'NL'
@@ -189,8 +189,13 @@ left Join managershalf as mh1
 On p.playerid = mh1.playerid
 Left Join managershalf as mh2
 On mh1.teamid = mh2.teamid
-WHERE am2.awardid = 'TSN Manager of the Year'
-    And am3.awardid = 'TSN Manager of the Year'
+WHERE am2.awardid = 'TSN Manager of the Year')
+    Select *
+From CTE
+Inner Join CTE as cte2
+Using()
+Where cte2.awardid='TSN Manager of the Year'
+    
 
     
 --Can get everything except team names.....
@@ -267,21 +272,30 @@ Where am.awardid = 'TSN Manager of the Year'
 --Q10. Find all players who hit their career highest number of home runs in 2016. Consider only players who have played in the league for at least 10 years, and who hit at least one home run in 2016. Report the players' first and last names and the number of home runs they hit in 2016.
 
 WITH record_homeruns AS
-   (SELECT playerid, yearid, MAX(hr) as max_homeruns
+   (SELECT playerid, MAX(hr) as max_homeruns
     FROM batting
-    GROUP BY playerid, yearid),
-        decade AS
-            (SELECT playerid
-            FROM batting
-            GROUP BY playerid
-            HAVING count(playerid) >= 10)
-SELECT rh.yearid,(CONCAT(p.namefirst, ' ', p.namelast)) as name, rh.max_homeruns
-FROM decade as d
-LEFT JOIN record_homeruns as rh
-USING(playerid)
+    GROUP BY playerid
+   Order By max_homeruns desc)
+SELECT (CONCAT(p.namefirst, ' ', p.namelast)) as name, max_homeruns
+From batting as b
+Join record_homeruns as rh
+Using (playerid)
 LEFT JOIN people as p
 USING(playerid)
-WHERE yearid = 2016 AND max_homeruns <> 0
+WHERE b.yearid = 2016 AND max_homeruns > 0 
+And b.hr = max_homeruns AND p.debut::Date <= '2006-12-31'
 ORDER BY rh.max_homeruns DESC;
 --A. Run Query...
 
+--OPEN ENDED QUESTIONS....
+
+--Q11. Is there any correlation between number of wins and team salary? Use data from 2000 and later to answer this question. As you do this analysis, keep in mind that salaries across the whole league tend to increase together, so you may want to look on a year-by-year basis.
+
+
+--Q12. In this question, you will explore the connection between number of wins and attendance.
+
+--A. Does there appear to be any correlation between attendance at home games and number of wins?
+--B. Do teams that win the world series see a boost in attendance the following year? What about teams that made the playoffs? Making the playoffs means either being a division winner or a wild card winner.
+
+
+--Q13. It is thought that since left-handed pitchers are more rare, causing batters to face them less often, that they are more effective. Investigate this claim and present evidence to either support or dispute this claim. First, determine just how rare left-handed pitchers are compared with right-handed pitchers. Are left-handed pitchers more likely to win the Cy Young Award? Are they more likely to make it into the hall of fame?
