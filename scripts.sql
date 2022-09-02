@@ -137,7 +137,7 @@ From teams
 Where yearid between '1970' AND '2016'
     And wswin = 'N'
 Group By yearid, teamid)
-Select sum(ww.perc_w)/sum(ww.perc_w + wl.perc_l)
+Select sum(ww.perc_w)/sum(ww.perc_w + wl.perc_l) as percentage
 From ws_win as ww
 Join ws_lose as wl
 Using(teamid);
@@ -175,9 +175,72 @@ Limit 5;
 --A. Run Query for "Bottom 5 Avg_Attendance"
 
 --Q9. Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.
-    
+Select distinct am1.playerid, concat(p.namefirst,' ',p.namelast) as manager, am2.awardid, am2.yearid as nl_year, mh1.teamid as team, am2.lgid
+    From awardsmanagers As am1
+    Join awardsmanagers As am2
+    On am1.playerid=am2.playerid And am2.lgid = 'NL'
+    Left Join People as p
+    On am1.playerid=p.playerid
+    Left Join managershalf as mh1
+    on p.playerid=mh1.playerid
+    Left Join teams as t
+    On mh1.yearid=t.yearid
+    Where am2.awardid='TSN Manager of the Year'
+Union
+Select distinct am1.playerid, concat(p.namefirst,' ',p.namelast) as manager, am2.awardid, am2.yearid as al_year, mh1.teamid as team, am2.lgid
+    From awardsmanagers As am1
+    Join awardsmanagers As am2
+    On am1.playerid=am2.playerid And am2.lgid = 'AL'
+    Left Join People as p
+    On am1.playerid=p.playerid
+    Left Join managershalf as mh1
+    on p.playerid=mh1.playerid
+    Left Join teams as t
+    On mh1.yearid=t.yearid
+    Where am2.awardid='TSN Manager of the Year'
+
+
+
+With NL_winner as
+    (Select distinct am1.playerid, concat(p.namefirst,' ',p.namelast) as manager, am1.awardid, am1.yearid as nl_year, mh1.teamid as team, am1.lgid
+    From awardsmanagers As am1
+    --Join awardsmanagers As am2
+    --On am1.playerid=am2.playerid And am2.lgid = 'NL'
+    Left Join People as p
+    On am1.playerid=p.playerid
+    Left Join managershalf as mh1
+    on p.playerid=mh1.playerid
+    Left Join teams as t
+    On mh1.yearid=t.yearid
+    Where am1.awardid='TSN Manager of the Year'
+    And am1.lgid = 'NL'),        
+AL_winner as
+    (Select distinct am1.playerid,/* concat(p.namefirst,' ',p.namelast) as manager, am2.awardid,*/ am1.yearid as al_year, mh1.teamid as team, am1.lgid
+    From awardsmanagers As am1
+    --Join awardsmanagers As am2
+    --On am1.playerid=am2.playerid And am2.lgid = 'AL'
+    Left Join People as p
+    On am1.playerid=p.playerid
+    Left Join managershalf as mh1
+    on p.playerid=mh1.playerid
+    Left Join teams as t
+    On mh1.yearid=t.yearid
+    Where am1.awardid='TSN Manager of the Year'
+    And am1.lgid = 'AL')
+Select *
+From NL_winner as nl
+Join AL_winner as al
+Using(playerid)
+
+
+
+
 With CTE as
-(SELECT DISTINCT am1.playerid, CONCAT(p.namefirst,' ',p.namelast) as manager, am2.awardid, am2.yearid AS NL_year, mh1.teamid as team, am2.lgid, am3.yearid AS AL_year, mh2.teamid as team, am3.lgid
+(Select playerid, awardid
+From awardsmanagers
+Where awardid = 'TSN Manager of the Year')
+
+SELECT DISTINCT am1.playerid, CONCAT(p.namefirst,' ',p.namelast) as manager, am2.awardid, am2.yearid AS NL_year, mh1.teamid as team, am2.lgid ,am3.yearid AS AL_year, mh2.teamid as team, am3.lgid
 FROM awardsmanagers AS am1
 JOIN awardsmanagers AS am2
 ON am1.playerid = am2.playerid AND am2.lgid = 'NL'
@@ -189,12 +252,15 @@ left Join managershalf as mh1
 On p.playerid = mh1.playerid
 Left Join managershalf as mh2
 On mh1.teamid = mh2.teamid
-WHERE am2.awardid = 'TSN Manager of the Year')
-    Select *
-From CTE
-Inner Join CTE as cte2
-Using()
-Where cte2.awardid='TSN Manager of the Year'
+Left Join teams as t
+On mh1.teamid=t.teamid
+WHERE am2.awardid = 'TSN Manager of the Year'
+And am3.awardid='TSN Manager of the Year'
+
+
+Select awardid
+From awardsmanagers
+Where awardid='TSN Manager of the year'
     
 
     
@@ -291,6 +357,17 @@ ORDER BY rh.max_homeruns DESC;
 
 --Q11. Is there any correlation between number of wins and team salary? Use data from 2000 and later to answer this question. As you do this analysis, keep in mind that salaries across the whole league tend to increase together, so you may want to look on a year-by-year basis.
 
+Select distinct s.yearid, s.teamid as team, sum(s.salary) as team_salary, count(t.w)
+From salaries as s
+Join managers as m
+Using(teamid)
+Left Join teams as t
+Using(teamid)
+Where s.yearid >= '2000'
+Group By s.yearid, s.teamid
+Order By yearid desc;
+
+Select * from salaries
 
 --Q12. In this question, you will explore the connection between number of wins and attendance.
 
